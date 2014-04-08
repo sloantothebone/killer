@@ -35,7 +35,23 @@ minetest.register_node("killer:protector", {
 	description = "Protector (Range:5)",
 })
 
+minetest.register_node("killer:novirusblock", {
+	tiles = {"killer_novirusblock.png"},
+	groups = {cracky=1},
+	description = "Virus Protection Block",
+})
+
 killall = false
+
+local contain = function(t, s)
+	for k, v in ipairs(t) do
+		if v == s then
+			return true
+		else
+			return false
+		end
+	end
+end
 
 minetest.register_abm({
 	nodenames = {"killer:protector"},
@@ -90,7 +106,10 @@ minetest.register_abm({
 				y=pos.y+math.random(-1, 1),
 				z=pos.z+math.random(-1, 1),
 			}
-			if minetest.get_node(p).name ~= "killer:killer" then
+			local t = {
+				"killer:novirusblock",
+				}
+			if minetest.get_node(p).name ~= "killer:killer" and not contain(t, minetest.get_node(p).name) then
 				minetest.set_node(p, {name="killer:killer"})
 			end
 		end
@@ -122,4 +141,13 @@ minetest.register_craft({
 		{"default:cobble", "", "default:cobble"},
 		{"default:steel_ingot", "default:cobble", "default:steel_ingot"},
 		},
+})
+
+minetest.register_craft({
+	output="killer:novirusblock 2",
+	recipe = {
+		{"default:stone", "default:obsidian", "default:stone"},
+		{"", "", ""},
+		{"", "", ""},
+	},
 })
