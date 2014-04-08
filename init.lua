@@ -11,6 +11,45 @@ minetest.register_node("killer:antikiller", {
 	description = "Antikiller",
 })
 
+minetest.register_node("killer:killall", {
+	tiles = {"killer_killall.png"},
+	groups = {crumbly=1},
+	description = "Killall (Kill all virus blocks)",
+	on_punch = function(pos, node, player, itemstack, pointed_thing)
+		if not killall then
+			killall = true
+			minetest.chat_send_player(player:get_player_name(), "Killall on")
+		else
+			killall = false
+			minetest.chat_send_player(player:get_player_name(), "Killall off")
+		end
+	end,
+	after_destruct = function(pos, oldnode)
+		killall = false
+	end,
+})
+
+minetest.register_node("killer:protector", {
+	tiles = {"killer_protector.png"},
+	groups = {crumbly=1},
+	description = "Protector (Range:5)",
+})
+
+killall = false
+
+minetest.register_abm({
+	nodenames = {"killer:protector"},
+	chance = 1,
+	interval = 5,
+	action = function(pos)
+		for i=0, 5, 1 do
+			if minetest.find_node_near(pos, 5, {"killer:killer"}) then
+				minetest.remove_node(minetest.find_node_near(pos, 5, {"killer:killer"}))
+			end
+		end
+	end,
+})
+
 minetest.register_abm({
 	nodenames = {"killer:antikiller"},
 	chance = 1,
@@ -39,16 +78,21 @@ minetest.register_abm({
 
 minetest.register_abm({
 	nodenames = {"killer:killer"},
-	chance = 5,
+	chance = 1,
 	interval = 5,
 	action = function(pos)
-		local p = {
-			x=pos.x+(math.random(1, 2)*math.random(-1, 1)),
-			y=pos.y+(math.random(1, 2)*math.random(-1, 1)),
-			z=pos.z+(math.random(1, 2)*math.random(-1, 1)),
-		}
-		if minetest.get_node(p).name ~= "killer:killer" then
-			minetest.set_node(p, {name="killer:killer"})
+		if killall then
+			minetest.remove_node(pos)
+		end
+		if math.random(1, 5) == 1 then
+			local p = {
+				x=pos.x+math.random(-1, 1),
+				y=pos.y+math.random(-1, 1),
+				z=pos.z+math.random(-1, 1),
+			}
+			if minetest.get_node(p).name ~= "killer:killer" then
+				minetest.set_node(p, {name="killer:killer"})
+			end
 		end
 	end,
 })
@@ -68,5 +112,14 @@ minetest.register_craft({
 		{"", "default:dirt", ""},
 		{"default:dirt", "", "default:dirt"},
 		{"", "default:dirt", ""},
+		},
+})
+
+minetest.register_craft({
+	output="killer:protector 2",
+	recipe = {
+		{"default:steel_ingot", "default:cobble", "default:steel_ingot"},
+		{"default:cobble", "", "default:cobble"},
+		{"default:steel_ingot", "default:cobble", "default:steel_ingot"},
 		},
 })
